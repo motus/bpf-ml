@@ -57,14 +57,6 @@ class LogisticRegression(torch.nn.Module):
 
 def _main():
 
-    # x_data = Variable(torch.Tensor([[10.0], [9.0], [3.0], [2.0]]))
-    # y_data )= Variable(torch.Tensor([[90.0], [80.0], [50.0], [30.0]]))
-
-    # data_size = 10
-    # x_data = torch.randn(100, 1) * data_size
-    # y_data = torch.FloatTensor(map(lambda x: 1 if x > 0 else 0, x_data))
-    # print(x_data, y_data)
-
     x_data, y_data = _read_data()
     data_size = len(x_data)
     print("Read data: X: %s Y: %s\n" % (x_data.shape, y_data.shape))
@@ -88,7 +80,6 @@ def _main():
         if epoch % 100 == 0:
             print('epoch {}, loss {}'.format(epoch, loss.item() / data_size))
 
-    # new_x = Variable(torch.Tensor([[-5.0], [4.0]]))
     test_idx = 10
     new_x = x_data[test_idx]
     y_pred = model(new_x)
@@ -97,10 +88,10 @@ def _main():
     input_names = ["actual_input_1"] + ["learned_%d" % i for i in range(2)]
     output_names = ["output1"]
 
+    # Glow does not support dynamic dimensions - make sure sample size is 1.
     torch.onnx.export(
-        model, x_data, "model/lr_34b_v0.onnx", verbose=True,
-        input_names=input_names, output_names=output_names,
-        dynamic_axes={"actual_input_1": {0: "sample"}, "output1": {0: "sample"}})
+        model, x_data[:1], "model/lr_34b_v0.onnx", verbose=True,
+        input_names=input_names, output_names=output_names)
 
 
 if __name__ == "__main__":
