@@ -60,5 +60,5 @@ print("predicted Y value: ", y_pred.data)
 
 input_names = ["actual_input_1"] + ["learned_%d" % i for i in range(2)]
 output_names = ["output1"]
-torch.onnx.export(model, x_data, "alexnet.onnx", verbose=True,
+torch.onnx.export(model, x_data, "1-in-1-out.onnx", verbose=True,
                   input_names=input_names, output_names=output_names)
