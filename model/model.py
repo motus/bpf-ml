@@ -80,17 +80,17 @@ def _main():
         if epoch % 100 == 0:
             print('epoch {}, loss {}'.format(epoch, loss.item() / data_size))
 
-    test_idx = 10
-    new_x = x_data[test_idx]
-    y_pred = model(new_x)
-    print("predicted Y value: %f actual: %f" % (y_pred.data, y_data[test_idx]))
+    test_idx = torch.randint(0, len(x_data), [20])
+    test_accuracy = float(torch.abs(model(x_data[test_idx])
+                          - y_data[test_idx]).sum()) / len(test_idx)
+    print("Accuracy: %.2f%%" % (test_accuracy * 100.0))
 
     input_names = ["actual_input_1"] + ["learned_%d" % i for i in range(2)]
     output_names = ["output1"]
 
     # Glow does not support dynamic dimensions - make sure sample size is 1.
     torch.onnx.export(
-        model, x_data[:1], "model/lr_34b_v0.onnx", verbose=True,
+        model, x_data[:1], "model/logistic_34b_v1.onnx", verbose=True,
         input_names=input_names, output_names=output_names)
 
 
