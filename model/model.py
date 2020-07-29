@@ -61,10 +61,12 @@ def _main():
     data_size = len(x_data)
     print("Read data: X: %s Y: %s\n" % (x_data.shape, y_data.shape))
 
-    # model = LinearRegression(input_dim, output_dim)
-    model = LogisticRegression(_DIM_INPUT, _DIM_OUTPUT)
+    # model = LinearRegression(_DIM_INPUT, _DIM_OUTPUT)
     # criterion = torch.nn.MSELoss()
+
+    model = LogisticRegression(_DIM_INPUT, _DIM_OUTPUT)
     criterion = torch.nn.BCELoss(reduction="sum")
+
     optimizer = torch.optim.SGD(model.parameters(), lr=0.015)
 
     for epoch in range(1000):
