@@ -37,22 +37,20 @@ class LinearRegression(torch.nn.Module):
 
     def __init__(self, input_dim, output_dim):
         super(LinearRegression, self).__init__()
-        self.linear = torch.nn.Linear(_DIM_INPUT, _DIM_OUTPUT)
+        self.linear = torch.nn.Linear(input_dim, output_dim)
 
     def forward(self, x):
-        y_pred = self.linear(x)
-        return y_pred
+        return self.linear(x)
 
 
 class LogisticRegression(torch.nn.Module):
 
     def __init__(self, input_dim, output_dim):
         super(LogisticRegression, self).__init__()
-        self.linear = torch.nn.Linear(_DIM_INPUT, _DIM_OUTPUT)
+        self.linear = torch.nn.Linear(input_dim, output_dim)
 
     def forward(self, x):
-        y_pred = torch.sigmoid(self.linear(x))
-        return y_pred
+        return torch.sigmoid(self.linear(x))
 
 
 def _main():
@@ -87,13 +85,10 @@ def _main():
                           - y_data[test_idx]).sum()) / len(test_idx)
     print("\nAccuracy: %.2f%%\n" % (test_accuracy * 100.0))
 
-    input_names = ["actual_input_1"] + ["learned_%d" % i for i in range(2)]
-    output_names = ["output1"]
-
     # Glow does not support dynamic dimensions - make sure sample size is 1.
     torch.onnx.export(
         model, x_data[:1], "model/logistic_34b_v1.onnx", verbose=True,
-        input_names=input_names, output_names=output_names)
+        input_names=["input", "weights", "bias"], output_names=["output"])
 
 
 if __name__ == "__main__":
