@@ -5,6 +5,7 @@ import pickle
 
 import torch
 from torch.autograd import Variable
+from torch.quantization import QuantStub, DeQuantStub
 from torch.nn import functional as F
 
 
@@ -48,12 +49,27 @@ class LogisticRegression(torch.nn.Module):
     def __init__(self, input_dim, output_dim):
         super(LogisticRegression, self).__init__()
         self.linear = torch.nn.Linear(input_dim, output_dim)
+        self.quant = QuantStub()
+        self.dequant = DeQuantStub()
 
     def forward(self, x):
-        return torch.sigmoid(self.linear(x))
+        x = self.quant(x)
+        y = self.linear(x)
+        y = torch.sigmoid(y)
+        y = self.dequant(y)
+        return y
 
 
-def _main():
+def _evaluate(model, data, criterion):
+    loss = 0.0
+    with torch.no_grad():
+        for (x, y_target) in data:
+            y = model(x)
+            loss += criterion(y, y_target)
+    return loss
+
+
+def _train():
 
     x_data, y_data = _read_data()
     data_size = len(x_data)
@@ -80,10 +96,14 @@ def _main():
         if epoch % 100 == 0:
             print('epoch {}, loss {}'.format(epoch, loss.item() / data_size))
 
+    model.qconfig = torch.quantization.default_qconfig
+    torch.quantization.prepare(model, inplace=True)
+
     test_idx = torch.randint(0, len(x_data), [100])
-    test_accuracy = float(torch.abs(model(x_data[test_idx])
-                          - y_data[test_idx]).sum()) / len(test_idx)
-    print("\nAccuracy: %.2f%%\n" % (test_accuracy * 100.0))
+    acc = _evaluate(model, zip(x_data[test_idx], y_data[test_idx]), lambda a, b: abs(a - b))
+    print("\nAccuracy: %.2f%%\n" % (acc * 100.0 / len(test_idx)))
+
+    torch.quantization.convert(model, inplace=True)
 
     # Glow does not support dynamic dimensions - make sure sample size is 1.
     torch.onnx.export(
@@ -92,4 +112,4 @@ def _main():
 
 
 if __name__ == "__main__":
-    _main()
+    _train()
