@@ -56,7 +56,7 @@ int xdp(struct xdp_md *ctx) {
     u32 index;
     struct ethhdr *eth;
     struct iphdr *iph;
-    s8 y=0;           
+    s64 y = b; // start with the bias; no need to clamp y
     h_proto = parse_eth(data,nh_off,data_end,eth); //get the eth header
     nh_off = sizeof(*eth);
     if (h_proto == htons(ETH_P_IP)){
@@ -66,13 +66,14 @@ int xdp(struct xdp_md *ctx) {
             return XDP_PASS;
         }
      //y=w*x+b start
-       #pragma unroll 
-        for(int i=0;i<34;i++){
-            s8 *byte = data+(i);
-            u8 *d = data+(i);
-            y+=*byte+(s8)w[i];
+        #pragma unroll 
+        for (u8 i = 0; i < 34; ++i) {
+            s8 *byte = data+(i); // don't change this 
+            s64 prod = (*byte) * w[i];
+            if (prod < -128) prod = -128;
+            else if (prod > 127) prod = 127;
+            y += prod;
         }
-        y += (s8)b;
         //y=w*x+b stop
         if(y>0){
             printk("Dropping: %d\n",y);
