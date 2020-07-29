@@ -80,10 +80,10 @@ def _main():
         if epoch % 100 == 0:
             print('epoch {}, loss {}'.format(epoch, loss.item() / data_size))
 
-    test_idx = torch.randint(0, len(x_data), [20])
+    test_idx = torch.randint(0, len(x_data), [100])
     test_accuracy = float(torch.abs(model(x_data[test_idx])
                           - y_data[test_idx]).sum()) / len(test_idx)
-    print("Accuracy: %.2f%%" % (test_accuracy * 100.0))
+    print("\nAccuracy: %.2f%%\n" % (test_accuracy * 100.0))
 
     input_names = ["actual_input_1"] + ["learned_%d" % i for i in range(2)]
     output_names = ["output1"]
