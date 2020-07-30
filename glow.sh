@@ -18,5 +18,5 @@ do
         --bundle-api-verbose \
         --relocation-model=pic \
         --optimize-ir \
-        --dump-ir-after-all-passes > "${MODEL_DIR}/${MODEL_BASE}.ll"
+        --dump-llvm-ir > "${MODEL_DIR}/${MODEL_BASE}.ll"
 done
