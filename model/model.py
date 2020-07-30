@@ -13,16 +13,16 @@ _DIM_INPUT = 34  # 14 bytes Ethernet header + 20 bytes IP
 _DIM_OUTPUT = 1  # it's a binary classifier
 
 
-def _read_file(fname, trim=_DIM_INPUT):
+def read_file(fname, trim=_DIM_INPUT):
     with open(fname, "rb") as pkfile:
         data = pickle.load(pkfile)
         return [d[:trim] for d in data]
 
 
-def _read_data(dtype=torch.float32):
+def read_data(dtype=torch.float32):
 
-    data_spam = _read_file("data/nmap.pk")
-    data_ham = _read_file("data/wget.pk")
+    data_spam = read_file("data/nmap.pk")
+    data_ham = read_file("data/wget.pk")
 
     x_data = data_spam + data_ham
     y_data = [[1]] * len(data_spam) + [[0]] * len(data_ham)
@@ -65,7 +65,7 @@ class LogisticRegression(torch.nn.Module):
         return y
 
 
-def _evaluate(model, data, criterion):
+def evaluate(model, data, criterion):
     loss = 0.0
     with torch.no_grad():
         for (x, y_target) in data:
@@ -74,9 +74,7 @@ def _evaluate(model, data, criterion):
     return loss
 
 
-def _train(x_data, y_data):
-
-    data_size = len(x_data)
+def train(x_data, y_data):
 
     # model = LinearRegression(_DIM_INPUT, _DIM_OUTPUT)
     # criterion = torch.nn.MSELoss()
@@ -97,7 +95,17 @@ def _train(x_data, y_data):
         loss.backward()
         optimizer.step()
         if epoch % 100 == 0:
-            print('epoch {}, loss {}'.format(epoch, loss.item() / data_size))
+            print('epoch {}, loss {}'.format(epoch, loss.item() / len(x_data)))
+
+    return model
+
+
+if __name__ == "__main__":
+
+    x_data, y_data = read_data()
+    print("Read data: X: %s Y: %s\n" % (x_data.shape, y_data.shape))
+
+    model = train(x_data, y_data)
 
     torch.backends.quantized.engine = 'qnnpack'
     model.qconfig = torch.quantization.default_qconfig
@@ -105,20 +113,10 @@ def _train(x_data, y_data):
 
     test_idx = torch.randint(0, len(x_data), [1000])
     # Also serves as calibration for the dynamic quantization:
-    acc = _evaluate(model, zip(x_data[test_idx], y_data[test_idx]), lambda a, b: abs(a - b))
+    acc = evaluate(model, zip(x_data[test_idx], y_data[test_idx]), lambda a, b: abs(a - b))
     print("\nAccuracy: %.2f%%\n" % (acc * 100.0 / len(test_idx)))
 
     torch.quantization.convert(model, inplace=True)
-
-    return model
-
-
-if __name__ == "__main__":
-
-    x_data, y_data = _read_data()
-    print("Read data: X: %s Y: %s\n" % (x_data.shape, y_data.shape))
-
-    model = _train(x_data, y_data)
 
     print(model, "\n")
 
