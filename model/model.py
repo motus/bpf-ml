@@ -137,8 +137,18 @@ if __name__ == "__main__":
     for (key, val) in model.state_dict().items():
         print(key, "=", val)
 
-    print("\n*** Export to ONNX:\n")
-    # Glow does not support dynamic dimensions - make sure sample size is 1.
-    torch.onnx.export(
-        model, x_data[:1], "model/logistic_34b_v1.onnx", verbose=True,
-        input_names=["input", "weights", "bias"], output_names=["output"])
+    print("\n*** Quantized weights:")
+
+    w = model.linear.weight()
+    qw = (w.dequantize() / w.q_scale() + w.q_zero_point()).int()
+    qb = (model.linear.bias() / w.q_scale() + w.q_zero_point()).int()
+
+    print("w =", qw[0].tolist())
+    print("bias =", int(qb))
+
+    # print("\n*** Export to ONNX:\n")
+
+    # # Glow does not support dynamic dimensions - make sure sample size is 1.
+    # torch.onnx.export(
+    #     model, x_data[:1], "model/logistic_34b_v1.onnx", verbose=True,
+    #     input_names=["input", "weights", "bias"], output_names=["output"])
