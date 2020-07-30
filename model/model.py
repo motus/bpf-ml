@@ -100,6 +100,22 @@ def train(x_data, y_data):
     return model
 
 
+def quantize(model, x_data, y_data):
+
+    torch.backends.quantized.engine = 'qnnpack'
+    model.qconfig = torch.quantization.default_qconfig
+    model = torch.quantization.prepare(model, inplace=False)
+
+    test_idx = torch.randint(0, len(x_data), [1000])
+    # Also serves as calibration for the dynamic quantization:
+    acc = evaluate(model, zip(x_data[test_idx], y_data[test_idx]), lambda a, b: abs(a - b))
+    print("\nAccuracy: %.2f%%\n" % (acc * 100.0 / len(test_idx)))
+
+    model = torch.quantization.convert(model, inplace=False)
+
+    return model
+
+
 if __name__ == "__main__":
 
     x_data, y_data = read_data()
@@ -107,22 +123,14 @@ if __name__ == "__main__":
 
     model = train(x_data, y_data)
 
-    torch.backends.quantized.engine = 'qnnpack'
-    model.qconfig = torch.quantization.default_qconfig
-    torch.quantization.prepare(model, inplace=True)
-
-    test_idx = torch.randint(0, len(x_data), [1000])
-    # Also serves as calibration for the dynamic quantization:
-    acc = evaluate(model, zip(x_data[test_idx], y_data[test_idx]), lambda a, b: abs(a - b))
-    print("\nAccuracy: %.2f%%\n" % (acc * 100.0 / len(test_idx)))
-
-    torch.quantization.convert(model, inplace=True)
+    model = quantize(model, x_data, y_data)
 
     print(model, "\n")
 
     for (key, val) in model.state_dict().items():
         print(key, "=", val)
 
+    print("\n*** Export to ONNX:\n")
     # Glow does not support dynamic dimensions - make sure sample size is 1.
     torch.onnx.export(
         model, x_data[:1], "model/logistic_34b_v1.onnx", verbose=True,
