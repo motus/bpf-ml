@@ -82,7 +82,7 @@ def train(x_data, y_data):
     model = LogisticRegression(_DIM_INPUT, _DIM_OUTPUT)
     criterion = torch.nn.BCELoss(reduction="sum")
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.015)
+    optimizer = torch.optim.Adagrad(model.parameters())
 
     for epoch in range(1000):
         model.train()
@@ -106,10 +106,12 @@ def quantize(model, x_data, y_data):
     model.qconfig = torch.quantization.default_qconfig
     model = torch.quantization.prepare(model, inplace=False)
 
-    test_idx = torch.randint(0, len(x_data), [1000])
-    # Also serves as calibration for the dynamic quantization:
-    acc = evaluate(model, zip(x_data[test_idx], y_data[test_idx]), lambda a, b: abs(a - b))
-    print("\nAccuracy: %.2f%%\n" % (acc * 100.0 / len(test_idx)))
+    # test_idx = torch.randint(0, len(x_data), [1000])
+    # (x_test, y_test) = (x_data[test_idx], y_data[test_idx])
+    (x_test, y_test) = (x_data, y_data)
+    num_correct = (y_test == (model(x_test) > 0.5)).sum()
+    print("\nTest on %d samples: %d spam, predicted correctly %d or %.2f%%\n" % (
+        len(y_test), y_test.sum(), num_correct, num_correct * 100.0 / len(y_test)))
 
     model = torch.quantization.convert(model, inplace=False)
 
@@ -123,7 +125,12 @@ if __name__ == "__main__":
 
     model = train(x_data, y_data)
 
-    model = quantize(model, x_data, y_data)
+    (x_test, y_test) = (x_data, y_data)
+    num_correct = (y_test == (model(x_test) > 0.5)).sum()
+    print("\nTest on %d samples: %d spam, predicted correctly %d or %.2f%%\n" % (
+        len(y_test), y_test.sum(), num_correct, num_correct * 100.0 / len(y_test)))
+
+    # model = quantize(model, x_data, y_data)
 
     print(model, "\n")
 
