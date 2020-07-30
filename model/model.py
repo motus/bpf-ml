@@ -125,12 +125,12 @@ if __name__ == "__main__":
 
     model = train(x_data, y_data)
 
-    (x_test, y_test) = (x_data, y_data)
-    num_correct = (y_test == (model(x_test) > 0.5)).sum()
-    print("\nTest on %d samples: %d spam, predicted correctly %d or %.2f%%\n" % (
-        len(y_test), y_test.sum(), num_correct, num_correct * 100.0 / len(y_test)))
+    # (x_test, y_test) = (x_data, y_data)
+    # num_correct = (y_test == (model(x_test) > 0.5)).sum()
+    # print("\nTest on %d samples: %d spam, predicted correctly %d or %.2f%%\n" % (
+    #     len(y_test), y_test.sum(), num_correct, num_correct * 100.0 / len(y_test)))
 
-    # model = quantize(model, x_data, y_data)
+    model = quantize(model, x_data, y_data)
 
     print(model, "\n")
 

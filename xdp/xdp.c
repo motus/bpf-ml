@@ -14,13 +14,14 @@
 
 #include "xdp.h"
 
-static int w[34] = {
-    -28,  -86,  -48,   90, -113,   34,  127,   83, -107,    3,  -70,  -63,
-     10,  -17,  -27,   26,   -3,  -70,  -58,  127,    5,   60,  -36,  -46,
-    -11,  102,   14,   18,  -99,   88,  101,  -29,   86,    4
+static int w[34] =
+{
+     94,   53,   63,   -8, -108,  -62,  -69,   99,   95,  -24,  -36,  -51,
+     37,   28, -111,    5,  -16,  -76,  -22,   30, -128, -101,   34,   62,
+    -27,   30,  -93,   76,   29,   89,   28,  117,   14,  -65
 };
 
-static int b = 5;
+static int b = 17;
 
 SEC("prog")
 int xdp(struct xdp_md *ctx)
@@ -53,12 +54,7 @@ int xdp(struct xdp_md *ctx)
         for (u8 i = 0; i < 34; ++i)
         {
             s8 *byte = data + (i); // don't change this
-            s64 prod = (*byte) * w[i];
-            if (prod < -128)
-                prod = -128;
-            else if (prod > 127)
-                prod = 127;
-            y += prod;
+            y += (*byte) * w[i];
         }
         // y=w*x+b stop
 
