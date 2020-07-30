@@ -28,7 +28,7 @@ def parser(file):
 
 
 for fname in ["nmap", "wget"]:
-	data = parser("data/orig/" + fname)
+	data = parser("data/tcp/" + fname)
 	print("%s data has %d packets" % (fname, len(data)))
 	with open("data/%s.pk" % fname, "wb") as pkfile:
 		pickle.dump(data, pkfile)
