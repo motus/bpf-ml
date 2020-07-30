@@ -39,9 +39,14 @@ class LinearRegression(torch.nn.Module):
     def __init__(self, input_dim, output_dim):
         super(LinearRegression, self).__init__()
         self.linear = torch.nn.Linear(input_dim, output_dim)
+        self.quant = QuantStub()
+        self.dequant = DeQuantStub()
 
     def forward(self, x):
-        return self.linear(x)
+        x = self.quant(x)
+        y = self.linear(x)
+        y = self.dequant(y)
+        return y
 
 
 class LogisticRegression(torch.nn.Module):
@@ -69,11 +74,9 @@ def _evaluate(model, data, criterion):
     return loss
 
 
-def _train():
+def _train(x_data, y_data):
 
-    x_data, y_data = _read_data()
     data_size = len(x_data)
-    print("Read data: X: %s Y: %s\n" % (x_data.shape, y_data.shape))
 
     # model = LinearRegression(_DIM_INPUT, _DIM_OUTPUT)
     # criterion = torch.nn.MSELoss()
@@ -96,20 +99,33 @@ def _train():
         if epoch % 100 == 0:
             print('epoch {}, loss {}'.format(epoch, loss.item() / data_size))
 
+    torch.backends.quantized.engine = 'qnnpack'
     model.qconfig = torch.quantization.default_qconfig
     torch.quantization.prepare(model, inplace=True)
 
-    test_idx = torch.randint(0, len(x_data), [100])
+    test_idx = torch.randint(0, len(x_data), [1000])
+    # Also serves as calibration for the dynamic quantization:
     acc = _evaluate(model, zip(x_data[test_idx], y_data[test_idx]), lambda a, b: abs(a - b))
     print("\nAccuracy: %.2f%%\n" % (acc * 100.0 / len(test_idx)))
 
     torch.quantization.convert(model, inplace=True)
 
+    return model
+
+
+if __name__ == "__main__":
+
+    x_data, y_data = _read_data()
+    print("Read data: X: %s Y: %s\n" % (x_data.shape, y_data.shape))
+
+    model = _train(x_data, y_data)
+
+    print(model, "\n")
+
+    for (key, val) in model.state_dict().items():
+        print(key, "=", val)
+
     # Glow does not support dynamic dimensions - make sure sample size is 1.
     torch.onnx.export(
         model, x_data[:1], "model/logistic_34b_v1.onnx", verbose=True,
         input_names=["input", "weights", "bias"], output_names=["output"])
-
-
-if __name__ == "__main__":
-    _train()
