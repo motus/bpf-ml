@@ -78,16 +78,16 @@ typedef unsigned long long u64;
 #define load_dword(data, b) __constant_ntohll(*(u64 *)((u8*)(data) + (b)))
 // BPF_TABLE(MAPTYPE, u32, u64, dropcnt, 256);
 
-static inline int parse_eth(void *data, u64 nh_off, void *data_end,struct ethhdr *eth) {
-     eth = data + nh_off;
+static inline int parse_eth(void *data, u64 nh_off, void *data_end) {
+     struct ethhdr *eth = data + nh_off;
 
     if ((void*)&eth[1] > data_end)
         return 0;
     return eth->h_proto;
 }
 
-static inline int parse_ipv4(void *data, u64 nh_off, void *data_end,struct iphdr *iph ) {
-    iph = data + nh_off;
+static inline int parse_ipv4(void *data, u64 nh_off, void *data_end) {
+    struct iphdr *iph = data + nh_off;
 
     if ((void*)&iph[1] > data_end)
         return 0;
