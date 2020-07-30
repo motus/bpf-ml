@@ -9,14 +9,14 @@ from torch.quantization import QuantStub, DeQuantStub
 from torch.nn import functional as F
 
 
-_DIM_INPUT = 34  # 14 bytes Ethernet header + 20 bytes IP
+_DIM_INPUT = 40  # [SKIP: 14 bytes Ethernet header] + 20 bytes IP + 20 bytes TCP
 _DIM_OUTPUT = 1  # it's a binary classifier
 
 
-def read_file(fname, trim=_DIM_INPUT):
+def read_file(fname):
     with open(fname, "rb") as pkfile:
         data = pickle.load(pkfile)
-        return [d[:trim] for d in data]
+        return [d[14:54] for d in data if d[23] == 6]  # TCP packets only
 
 
 def read_data(dtype=torch.float32):
