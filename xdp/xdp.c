@@ -16,7 +16,10 @@
 // #define SRC_IP 0xc0a81d10
 
 // 192.168.1.118
-#define SRC_IP 0xC0A80176
+// #define SRC_IP 0xC0A80176
+
+// 192.168.1.139
+#define SRC_IP 0xC0A8018B
 
 struct bpf_map_def SEC("maps") counter_pass = {
     .type        = BPF_MAP_TYPE_ARRAY,
