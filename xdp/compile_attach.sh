@@ -4,8 +4,8 @@ if [ $# -ne 1 ];then
 	exit 0
 fi
 
-CLANG=clang-8
-CLANG_LLC=llc-8
+CLANG=clang-7
+CLANG_LLC=llc-7
 
 $CLANG \
     -Wno-unused-value \
@@ -14,7 +14,7 @@ $CLANG \
 	-Wno-gnu-variable-sized-type-not-at-end \
 	-Wno-tautological-compare \
 	-g -c -O2 -S \
-	-emit-llvm xdp.c \
-	-o - | $CLANG_LLC -march=bpf -filetype=obj -o xdp.o
+	-emit-llvm xdp/xdp.c \
+	-o - | $CLANG_LLC -march=bpf -filetype=obj -o xdp/xdp.o
 
-sudo ip link set dev $1 xdp obj xdp.o
+sudo ip link set dev $1 xdp obj xdp/xdp.o
