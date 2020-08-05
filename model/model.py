@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
 import random
-import pickle
 
 import torch
-from torch.autograd import Variable
 from torch.quantization import QuantStub, DeQuantStub
-from torch.nn import functional as F
+from scapy.utils import RawPcapReader
 
 
 _DIM_INPUT = 40  # [SKIP: 14 bytes Ethernet header] + 20 bytes IP + 20 bytes TCP
@@ -14,15 +12,13 @@ _DIM_OUTPUT = 1  # it's a binary classifier
 
 
 def read_file(fname):
-    with open(fname, "rb") as pkfile:
-        data = pickle.load(pkfile)
-        return [d[14:54] for d in data if d[23] == 6]  # TCP packets only
+    return [list(pkt[14:54]) for (pkt, _meta) in RawPcapReader(fname) if pkt[23] == 6]  # TCP only
 
 
 def read_data(dtype=torch.float32):
 
-    data_spam = read_file("data/nmap.pk")
-    data_ham = read_file("data/scp.pk")
+    data_spam = read_file("data/nmap.pcap")
+    data_ham = read_file("data/scp.pcap")
 
     x_data = data_spam + data_ham
     y_data = [[1]] * len(data_spam) + [[0]] * len(data_ham)
