@@ -22,7 +22,7 @@ def read_file(fname):
 def read_data(dtype=torch.float32):
 
     data_spam = read_file("data/nmap.pk")
-    data_ham = read_file("data/wget.pk")
+    data_ham = read_file("data/scp.pk")
 
     x_data = data_spam + data_ham
     y_data = [[1]] * len(data_spam) + [[0]] * len(data_ham)
