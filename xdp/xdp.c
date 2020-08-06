@@ -13,6 +13,12 @@
 
 #include "xdp.h"
 
+// NOTE: This filter works for a fixed IPv4 address only!
+// to disable IPv6 on your Linux system, run:
+//
+//     sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+//     sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+
 // #define SRC_IP 0xc0a81d10
 
 // 192.168.1.118
@@ -36,7 +42,10 @@ struct bpf_map_def SEC("maps") counter_drop = {
 };
 
 static int w[40] = {
--70, -91, -97, -8, -20, -53, 73, 66, 1, 80, 127, 43, -85, 29, -103, -93, 43, -81, 11, -30, 88, 15, 43, 54, -32, 15, 10, -21, -30, 28, 5, -8, 9, 35, 61, 75, -5, -5, -69, -77
+     -70,  -91,  -97,  -8,  -20,  -53,   73,   66,    1,   80,
+     127,   43,  -85,  29, -103,  -93,   43,  -81,   11,  -30,
+      88,   15,   43,  54,  -32,   15,   10,  -21,  -30,   28,
+       5,   -8,    9,  35,   61,   75,   -5,   -5,  -69,  -77
 };
 
 static int b = -122;
