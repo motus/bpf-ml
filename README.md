@@ -8,7 +8,7 @@ To reproduce the results:
 1. Collect some positive and negative data samples in [PCAP](https://www.tcpdump.org/manpages/pcap.3pcap.html) format (e.g., using [tcpdump](https://www.tcpdump.org)).
    This repo has some sample packets in [`data/`](data) directory.
 2. Train your classifier (run [`model/model.py`](model/model.py) script).
-3. Copy the quantized weight of your model into array `w` in [`xdp/xdp.c`](xdp/xdp.c).
+3. Copy the quantized weights of your model into array `w` and bias `b` in [`xdp/xdp.c`](xdp/xdp.c).
    (Yeah, we should've generated a source file instead)..
 4. Compile your C code and install the eBPF module by running [`xdp/compile_attach.sh`](xdp/compile_attach.sh) script.
 5. To uninstall the packet filter, run [`xdp/remove.sh`](xdp/remove.sh).
